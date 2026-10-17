@@ -1,0 +1,25 @@
+[project]
+name = "symmetro"
+version = "0.1.0"
+description = "Copy and mirror geometric shapes on a grid, as fast as you can"
+readme = "README.md"
+authors = [
+    { name = "MoutainGoatEntertainment", email = "tibor@ivanyi.org" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pygame-ce>=2.5.8",
+]
+
+[project.scripts]
+symmetro = "symmetro:main"
+symmetro-editor = "symmetro.editor:main"
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

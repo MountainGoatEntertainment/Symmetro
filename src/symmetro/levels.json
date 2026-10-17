@@ -1,0 +1,21 @@
+{
+  "_format": "moves = numpad digits walked from the start point (7 8 9 / 4 _ 6 / 1 2 3). Walking over an existing line just moves the pen. Modes: copy, mirror_v, mirror_h, quad, diagonal, rot180, rot90.",
+  "levels": [
+    {"id": "corner", "name": "Corner", "mode": "copy", "moves": "88866"},
+    {"id": "square", "name": "Square", "mode": "copy", "moves": "66884422"},
+    {"id": "arch-copy", "name": "Arch", "mode": "copy", "moves": "88963224884224"},
+    {"id": "flag", "name": "Flag", "mode": "mirror_v", "moves": "88886314"},
+    {"id": "arch-mirror", "name": "Arch mirror", "mode": "mirror_v", "moves": "88963224884224"},
+    {"id": "stairs", "name": "Stairs", "mode": "mirror_h", "moves": "686868222444"},
+    {"id": "arrow", "name": "Arrow", "mode": "mirror_h", "moves": "888193"},
+    {"id": "kite", "name": "Kite", "mode": "quad", "moves": "973188222"},
+    {"id": "arch-quad", "name": "Arch x3", "mode": "quad", "moves": "88963224884224"},
+    {"id": "boot", "name": "Boot", "mode": "diagonal", "moves": "888622344"},
+    {"id": "tee", "name": "Tee", "mode": "diagonal", "moves": "888466"},
+    {"id": "hook", "name": "Hook", "mode": "rot180", "moves": "8889632"},
+    {"id": "pinwheel", "name": "Pinwheel", "mode": "rot90", "moves": "896244"},
+    {"id": "crown", "name": "Crown", "mode": "quad", "moves": "883939224444"},
+    {"id": "arch-spin", "name": "Arch spin", "mode": "rot90", "moves": "88963224884224"},
+    {"id": "plane", "name": "Plane", "mode": "copy", "moves": "898886638474714118666222388644688644316679"}
+  ]
+}
