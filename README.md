@@ -61,19 +61,19 @@ so the `uv` command is found. You can check it with `uv --version`.
 **Just play.** No download is needed, and uv fetches the game straight from GitHub:
 
 ```sh
-uvx --from git+https://github.com/MoutainGoatEntertainment/Symmetro symmetro
+uvx --from git+https://github.com/MountainGoatEntertainment/Symmetro symmetro
 ```
 
 To get the newest version later, add `--refresh`:
 
 ```sh
-uvx --refresh --from git+https://github.com/MoutainGoatEntertainment/Symmetro symmetro
+uvx --refresh --from git+https://github.com/MountainGoatEntertainment/Symmetro symmetro
 ```
 
 **From a copy of the code.** Use this if you want to design levels or change the game:
 
 ```sh
-git clone https://github.com/MoutainGoatEntertainment/Symmetro.git
+git clone https://github.com/MountainGoatEntertainment/Symmetro.git
 cd Symmetro
 uv run symmetro          # the game
 uv run symmetro-editor   # the level designer
