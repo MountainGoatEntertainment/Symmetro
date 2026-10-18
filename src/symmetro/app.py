@@ -12,6 +12,7 @@ from . import scores
 from .game import Event, Round
 from .geometry import MODE_DESCRIPTIONS, MODE_NAMES, MODES, Layout, build_layout
 from .levels import DIFFICULTIES, Level, load_levels, random_shape
+from .music import Jukebox, music_dir
 
 WIDTH, HEIGHT = 1000, 780
 HUD_H, FOOTER_H, PAD = 96, 44, 24
@@ -46,6 +47,7 @@ DIR_SCANCODES = {
 UNDO_KEYS = {pygame.K_KP5, pygame.K_BACKSPACE}
 UNDO_SCANCODES = {pygame.KSCAN_S}
 CONFIRM_KEYS = {pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE}
+MUSIC_KEY = pygame.K_m
 
 
 def key_action(event: pygame.event.Event) -> int | str | None:
@@ -67,7 +69,10 @@ def menu_delta(event: pygame.event.Event) -> tuple[int, int]:
 
 class App:
     def __init__(
-        self, caption: str = "Symmetro", first_scene: Callable[[App], Scene] | None = None
+        self,
+        caption: str = "Symmetro",
+        first_scene: Callable[[App], Scene] | None = None,
+        music: bool = False,
     ) -> None:
         pygame.init()
         pygame.display.set_caption(caption)
@@ -75,6 +80,9 @@ class App:
         self.clock = pygame.time.Clock()
         self.fonts = {size: pygame.font.Font(None, size) for size in (24, 30, 38, 56, 96)}
         self.levels = load_levels()
+        self.jukebox = Jukebox(music_dir()) if music else None
+        if self.jukebox:
+            self.jukebox.start()
         self.scene: Scene | None = (first_scene or Splash)(self)
 
     def text(self, s: str, size: int, color=TEXT, **pos) -> pygame.Rect:
@@ -89,6 +97,11 @@ class App:
                 if event.type == pygame.QUIT:
                     self.scene = None
                     break
+                if self.jukebox and self.jukebox.handle(event):
+                    continue
+                if event.type == pygame.KEYDOWN and event.key == MUSIC_KEY and self.jukebox:
+                    self.jukebox.toggle()
+                    continue
                 if event.type == pygame.KEYDOWN:
                     self.scene = self.scene.key(event)
                 elif event.type == pygame.TEXTINPUT:
@@ -274,7 +287,7 @@ class MainMenu(ListMenu):
         return None
 
     def footer(self):
-        return "Up/Down: select    Enter: choose    Esc: quit"
+        return "Up/Down: select    Enter: choose    M: music on/off    Esc: quit"
 
 
 def fmt_best(key: str) -> str:
@@ -484,4 +497,4 @@ class Play(Scene):
 
 
 def run() -> None:
-    App().run()
+    App(music=True).run()

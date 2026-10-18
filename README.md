@@ -111,6 +111,40 @@ The arrow keys and Backspace work too.
 Modes: copy, vertical mirror, horizontal mirror, two axes (3 copies), diagonal mirror,
 rotate 180° and rotate 90° (3 copies).
 
+## Music
+
+The game plays background music while you play. Press **M** at any time to pause it and
+press it again to carry on where it stopped.
+
+The music comes from the `music` folder in the directory you start the game from. With
+a copy of the code, that is `music/` in the project, which holds `ambient.mp3`. Every
+`.mp3` file in the folder is played in alphabetical order (upper and lower case count
+the same), and after the last one the list starts over.
+
+### Adding your own music
+
+Copy your `.mp3` files into the `music` folder. To choose the order, start the file
+names with numbers, for example `01 Morning.mp3`, `02 Evening.mp3`. The folder is read
+again before each new track, so files you add or remove while the game runs are picked
+up at the next track. Files in other formats are ignored, and a file that can't be
+played is skipped.
+
+To keep your music somewhere else, point `SYMMETRO_MUSIC` at that folder:
+
+```sh
+SYMMETRO_MUSIC=~/Music/Symmetro uv run symmetro
+```
+
+On Windows (PowerShell):
+
+```powershell
+$env:SYMMETRO_MUSIC = "$HOME\Music\Symmetro"; uv run symmetro
+```
+
+This is also how you get music when you play with `uvx` (see "Just play" above), since
+the game is not started from a folder that has a `music` folder in it. If no music is
+found, or the computer has no sound device, the game simply plays without music.
+
 ## Designing levels
 
 ```sh

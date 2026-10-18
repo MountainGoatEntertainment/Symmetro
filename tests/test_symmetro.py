@@ -116,3 +116,20 @@ def test_trimmed_moves_drops_trailing_retrace():
 
     assert trimmed_moves((0, 0), [6, 6, 4, 4]) == "66"
     assert trimmed_moves((0, 0), [6, 4, 8]) == "648"
+
+
+def test_music_tracks_sorted_and_wrap(tmp_path):
+    from symmetro.music import find_tracks, next_track
+
+    for name in ("b.mp3", "A.MP3", "c.mp3", "notes.txt"):
+        (tmp_path / name).write_bytes(b"")
+    (tmp_path / "sub.mp3").mkdir()
+    tracks = find_tracks(tmp_path)
+    assert [p.name for p in tracks] == ["A.MP3", "b.mp3", "c.mp3"]
+    assert next_track(tracks, None).name == "A.MP3"
+    assert next_track(tracks, tracks[0]).name == "b.mp3"
+    assert next_track(tracks, tracks[-1]).name == "A.MP3"
+    # a track that was removed meanwhile: continue with the one after it
+    assert next_track(tracks, tmp_path / "bb.mp3").name == "c.mp3"
+    assert next_track([], None) is None
+    assert find_tracks(tmp_path / "missing") == []
