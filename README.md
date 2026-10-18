@@ -4,11 +4,42 @@ Copy geometric shapes on a grid as fast as you can, sometimes mirrored or rotate
 
 ## Installing and running
 
-Symmetro runs on macOS, Windows and Linux. The only thing you need to install is
+Symmetro runs on macOS, Windows and Linux. You need [git](https://git-scm.com/) and
 [uv](https://docs.astral.sh/uv/). uv downloads the right Python version and the game's
-libraries by itself.
+libraries by itself, and uses git to fetch the game from GitHub.
 
-### 1. Install uv
+### 1. Install git
+
+Check whether git is already installed with `git --version`. If it is, skip to step 2.
+
+macOS (in Terminal):
+
+```sh
+xcode-select --install
+```
+
+This installs Apple's Command Line Tools, which include git. If you use Homebrew,
+`brew install git` works too.
+
+Windows (in PowerShell):
+
+```powershell
+winget install --id Git.Git -e
+```
+
+Or download the installer from [git-scm.com](https://git-scm.com/downloads/win).
+
+Linux, with your distribution's package manager:
+
+```sh
+sudo apt install git     # Debian, Ubuntu
+sudo dnf install git     # Fedora
+sudo pacman -S git       # Arch
+```
+
+Afterwards, open a new terminal window so the `git` command is found.
+
+### 2. Install uv
 
 macOS and Linux (in Terminal):
 
@@ -25,7 +56,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 If you use Homebrew, `brew install uv` works too. Afterwards, open a new terminal window
 so the `uv` command is found. You can check it with `uv --version`.
 
-### 2. Run the game
+### 3. Run the game
 
 **Just play.** No download is needed, and uv fetches the game straight from GitHub:
 
