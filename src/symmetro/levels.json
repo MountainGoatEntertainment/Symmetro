@@ -16,6 +16,7 @@
     {"id": "pinwheel", "name": "Pinwheel", "mode": "rot90", "moves": "896244"},
     {"id": "crown", "name": "Crown", "mode": "quad", "moves": "883939224444"},
     {"id": "arch-spin", "name": "Arch spin", "mode": "rot90", "moves": "88963224884224"},
-    {"id": "plane", "name": "Plane", "mode": "copy", "moves": "898886638474714118666222388644688644316679"}
+    {"id": "plane", "name": "Plane", "mode": "rot180", "moves": "898886638474714118666222388644688644316679"},
+    {"id": "symmetro", "name": "Symmetro", "mode": "mirror_h", "moves": "71331739826822892929298226486486622886228862436688422"}
   ]
 }

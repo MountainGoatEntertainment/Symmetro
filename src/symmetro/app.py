@@ -14,7 +14,7 @@ from .geometry import MODE_DESCRIPTIONS, MODE_NAMES, MODES, Layout, build_layout
 from .levels import DIFFICULTIES, Level, load_levels, random_shape
 from .music import Jukebox, music_dir
 
-WIDTH, HEIGHT = 1000, 780
+WIDTH, HEIGHT = 1000, 940  # matches the 879x826 splash image
 HUD_H, FOOTER_H, PAD = 96, 44, 24
 SPLASH_PATH = Path(__file__).with_name("assets") / "splash.png"
 SPLASH_SECONDS = 4.0
