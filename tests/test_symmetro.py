@@ -3,7 +3,8 @@ import random
 import pytest
 
 from symmetro.game import Event, Round
-from symmetro.geometry import MODES, Shape, build_layout, crossing_diagonal
+from symmetro import scores
+from symmetro.geometry import MODES, Shape, build_layout, crossing_diagonal, min_moves
 from symmetro.levels import DIFFICULTIES, load_levels, random_shape
 
 ARCH = Shape.from_moves("88963224884224")
@@ -63,6 +64,8 @@ def test_undo_and_wrong_lines():
     assert r.undo() is Event.MOVED
     assert r.undos == 1
     assert play(r, "6") is Event.ROUND_DONE
+    assert (r.moves, r.minimum) == (4, 2)  # the undo counts as a move
+    assert r.ratio == 0.5
 
 
 def test_quad_advances_through_three_copies():
@@ -133,3 +136,42 @@ def test_music_tracks_sorted_and_wrap(tmp_path):
     assert next_track(tracks, tmp_path / "bb.mp3").name == "c.mp3"
     assert next_track([], None) is None
     assert find_tracks(tmp_path / "missing") == []
+
+
+@pytest.mark.parametrize(
+    ("moves", "expected"),
+    [
+        ("66", 2),        # a straight line from one end
+        ("64", 1),        # walking back over a line adds nothing to the shape
+        ("6262", 4),      # a closed square
+        ("6448", 4),      # start in the middle of a path: one side has to be walked back
+        ("6446822", 7),   # a plus sign from its centre: three arms out and back, then one
+    ],
+)
+def test_min_moves(moves, expected):
+    assert min_moves(Shape.from_moves(moves)) == expected
+
+
+def test_round_minimum_covers_every_copy():
+    r = Round(build_layout("quad", Shape.from_moves("66")))
+    assert r.minimum == 6
+    assert play(r, "44") is Event.COPY_DONE
+
+
+def test_scores_rank_by_ratio_then_time(tmp_path, monkeypatch):
+    monkeypatch.setenv("SYMMETRO_SCORES", str(tmp_path / "scores.json"))
+    assert scores.record("k", moves=25, minimum=20, seconds=5.0, undos=0) == 1
+    assert scores.record("k", moves=20, minimum=20, seconds=9.0, undos=0) == 1
+    assert scores.record("k", moves=20, minimum=20, seconds=7.0, undos=0) == 1
+    assert scores.record("k", moves=40, minimum=20, seconds=1.0, undos=0) == 4
+    assert [e["percent"] for e in scores.load()["k"]] == [100, 100, 80, 50]
+    assert scores.percent(250, 251) == 99
+
+
+def test_old_time_scores_are_moved_aside(tmp_path, monkeypatch):
+    path = tmp_path / "scores.json"
+    monkeypatch.setenv("SYMMETRO_SCORES", str(path))
+    path.write_text('{"k": [{"time": 3.2, "undos": 0, "date": "2026-01-01"}]}')
+    assert scores.load() == {}
+    assert (tmp_path / "scores-times.json").exists()
+    assert not path.exists()

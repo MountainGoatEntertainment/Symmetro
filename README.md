@@ -1,6 +1,6 @@
 # Symmetro
 
-Copy geometric shapes on a grid as fast as you can, sometimes mirrored or rotated.
+Copy geometric shapes on a grid in as few moves as you can, sometimes mirrored or rotated.
 
 ## Installing and running
 
@@ -105,8 +105,14 @@ The arrow keys and Backspace work too.
 - Moving along a line you already drew only moves the pen, so you can reach branches.
 - A copy is done as soon as your lines exactly match the target. The pen then jumps
   to the next pink dot.
-- The clock runs until every copy is done. Your five best times per level are saved in
-  `~/.symmetro/scores.json` (you can change the path with `SYMMETRO_SCORES`).
+- Every pen move counts, including moves along lines you already drew, and so does every
+  undo. The top right shows your moves next to the fewest moves the puzzle can be done in.
+- Your score is the fewest possible moves divided by the moves you used. Doing it in the
+  minimum gives 100%; with a minimum of 20, 25 moves gives 80% and 40 moves gives 50%.
+  Where a shape branches you have to walk some lines twice, and the minimum allows for that.
+- Your five best results per level are saved in `~/.symmetro/scores.json` (you can change
+  the path with `SYMMETRO_SCORES`). Equal scores are ranked by time. Scores saved by older
+  versions of the game, which only had times, are moved to `scores-times.json`.
 
 Modes: copy, vertical mirror, horizontal mirror, two axes (3 copies), diagonal mirror,
 rotate 180° and rotate 90° (3 copies).

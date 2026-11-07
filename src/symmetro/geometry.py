@@ -163,3 +163,56 @@ def build_layout(mode: str, shape: Shape, margin: int = 1) -> Layout:
         )
         return Layout(mode, 2 * c, 2 * c, orig, tuple(orig.map(f) for f in fs), (), (c, c))
     raise ValueError(f"unknown mode: {mode!r}")
+
+
+def min_moves(shape: Shape) -> int:
+    """Fewest pen moves that draw ``shape`` starting from its start point.
+
+    Every segment is drawn once; where the shape branches, some segments have to be
+    walked again to reach the rest. This is the open Chinese postman problem with a
+    fixed start: the cheapest set of re-walks pairs up the odd-degree points (with the
+    start point flipped and a free end point added), each pair joined by its shortest
+    path along the shape. Leaving the shape would draw wrong lines, so paths stay on it.
+    """
+    neighbours: dict[Point, list[Point]] = {}
+    for a, b in shape.segments:
+        neighbours.setdefault(a, []).append(b)
+        neighbours.setdefault(b, []).append(a)
+    if not neighbours:
+        return 0
+
+    odd = {p for p, ns in neighbours.items() if len(ns) % 2}
+    need = sorted(odd ^ {shape.start})  # an odd number of points; the free end makes it even
+
+    def distances(src: Point) -> dict[Point, int]:
+        dist, frontier = {src: 0}, [src]
+        while frontier:
+            nxt = []
+            for p in frontier:
+                for q in neighbours[p]:
+                    if q not in dist:
+                        dist[q] = dist[p] + 1
+                        nxt.append(q)
+            frontier = nxt
+        return dist
+
+    dist = {p: distances(p) for p in need}
+    n = len(need)
+    memo: dict[int, int] = {}
+
+    def best(left: int, end_free: bool) -> int:
+        """Cheapest pairing of the points in bitmask ``left``; one may be the free end."""
+        if not left:
+            return 0
+        key = left * 2 + end_free
+        if key not in memo:
+            i = (left & -left).bit_length() - 1
+            rest = left & ~(1 << i)
+            options = [dist[need[i]][need[j]] + best(rest & ~(1 << j), end_free)
+                       for j in range(i + 1, n) if rest >> j & 1]
+            if end_free:
+                options.append(best(rest, False))
+            memo[key] = min(options)
+        return memo[key]
+
+    return len(shape.segments) + best((1 << n) - 1, True)

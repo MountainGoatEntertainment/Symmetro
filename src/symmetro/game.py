@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
-from .geometry import Layout, Point, Segment, seg, step
+from .geometry import Layout, Point, Segment, min_moves, seg, step
 
 
 class Event(Enum):
@@ -22,16 +22,25 @@ class Round:
     pen: Point = (0, 0)
     drawn: list[set[Segment]] = field(default_factory=list)
     history: list[tuple[Point, Segment | None]] = field(default_factory=list)
-    moves: int = 0
+    moves: int = 0      # every pen move and every undo counts
     undos: int = 0
+    minimum: int = 0    # fewest moves that finish the round
+
 
     def __post_init__(self) -> None:
         self.drawn = [set() for _ in self.layout.copies]
         self.pen = self.layout.copies[0].start
+        # All copies are the same shape moved around, so each needs the same number.
+        self.minimum = min_moves(self.layout.original) * len(self.layout.copies)
 
     @property
     def finished(self) -> bool:
         return self.copy_index >= len(self.layout.copies)
+
+    @property
+    def ratio(self) -> float:
+        """Minimum moves divided by moves used: 1.0 is a perfect round."""
+        return self.minimum / max(self.moves, self.minimum, 1)
 
     @property
     def target(self) -> frozenset[Segment]:
@@ -62,6 +71,7 @@ class Round:
         if added:
             self.drawn[self.copy_index].discard(added)
         self.pen = prev
+        self.moves += 1
         self.undos += 1
         return Event.MOVED
 

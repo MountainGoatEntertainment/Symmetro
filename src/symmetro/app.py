@@ -78,7 +78,7 @@ class App:
         pygame.display.set_caption(caption)
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
-        self.fonts = {size: pygame.font.Font(None, size) for size in (24, 30, 38, 56, 96)}
+        self.fonts = {size: pygame.font.Font(None, size) for size in (24, 26, 30, 38, 56, 96)}
         self.levels = load_levels()
         self.jukebox = Jukebox(music_dir()) if music else None
         if self.jukebox:
@@ -194,12 +194,15 @@ class ListMenu(Scene):
 
     title = ""
     visible_rows = 13
+    left_size = 38
+    # Right edges (x) of the columns when a row's right side is a tuple of texts.
+    columns: tuple[int, ...] = ()
 
     def __init__(self, app: App, selected: int = 0) -> None:
         super().__init__(app)
         self.selected = selected
 
-    def rows(self) -> list[tuple[str, str]]:
+    def rows(self) -> list[tuple[str, str | tuple[str, ...]]]:
         raise NotImplementedError
 
     def choose(self, index: int) -> Scene | None:
@@ -237,8 +240,12 @@ class ListMenu(Scene):
             if i == self.selected:
                 pygame.draw.rect(app.screen, PAPER, (140, y - 6, WIDTH - 280, 40), border_radius=8)
                 pygame.draw.rect(app.screen, HILITE, (140, y - 6, WIDTH - 280, 40), 2, border_radius=8)
-            app.text(left, 38, midleft=(165, y + 14))
-            app.text(right, 30, MUTED, midright=(WIDTH - 165, y + 14))
+            app.text(left, self.left_size, midleft=(165, y + 14))
+            if isinstance(right, tuple):
+                for x, cell in zip(self.columns, right):
+                    app.text(cell, 26, MUTED, midright=(x, y + 14))
+            else:
+                app.text(right, 30, MUTED, midright=(WIDTH - 165, y + 14))
             y += 46
         app.text(self.footer(), 24, MUTED, midbottom=(WIDTH // 2, HEIGHT - 16))
 
@@ -270,7 +277,7 @@ class Splash(Scene):
 
 class MainMenu(ListMenu):
     title = "SYMMETRO"
-    items = ("Play levels", "Random shape", "Best times", "Quit")
+    items = ("Play levels", "Random shape", "Best results", "Quit")
 
     def rows(self):
         return [(item, "") for item in self.items]
@@ -279,7 +286,7 @@ class MainMenu(ListMenu):
         return [
             lambda: LevelSelect(self.app),
             lambda: RandomSelect(self.app),
-            lambda: BestTimes(self.app),
+            lambda: BestResults(self.app),
             lambda: None,
         ][index]()
 
@@ -292,7 +299,7 @@ class MainMenu(ListMenu):
 
 def fmt_best(key: str) -> str:
     b = scores.best(key)
-    return f"best {b['time']:.2f} s" if b else "-"
+    return f"best {b['percent']}%" if b else "-"
 
 
 def level_key(level: Level) -> str:
@@ -373,8 +380,10 @@ def random_play(app: App, mode: str, difficulty: str, menu_index: int) -> Scene:
     )
 
 
-class BestTimes(ListMenu):
-    title = "Best times"
+class BestResults(ListMenu):
+    title = "Best results"
+    left_size = 30
+    columns = (565, 650, 730, WIDTH - 160)  # score, moves, time, date
 
     def rows(self):
         data = scores.load()
@@ -388,12 +397,12 @@ class BestTimes(ListMenu):
             for diff in DIFFICULTIES:
                 entries = data.get(random_key(mode, diff))
                 if entries:
-                    rows.append((f"Random {MODE_NAMES[mode]} ({diff})", self._fmt(entries[0])))
-        return rows or [("No times yet - go play!", "")]
+                    rows.append((f"Random {MODE_NAMES[mode]}, {diff}", self._fmt(entries[0])))
+        return rows or [("No results yet - go play!", "")]
 
     @staticmethod
-    def _fmt(e: dict) -> str:
-        return f"{e['time']:.2f} s   {e['undos']} undos   {e['date']}"
+    def _fmt(e: dict) -> tuple[str, ...]:
+        return (f"{e['percent']}%", f"{e['moves']}/{e['min']}", f"{e['time']:.1f} s", e["date"])
 
     def choose(self, index):
         return self
@@ -444,7 +453,8 @@ class Play(Scene):
                 self.flash_until = time.perf_counter() + 0.35
             elif result is Event.ROUND_DONE:
                 self.elapsed = time.perf_counter() - self.started
-                self.rank = scores.record(self.score_key, self.elapsed, self.round.undos)
+                r = self.round
+                self.rank = scores.record(self.score_key, r.moves, r.minimum, self.elapsed, r.undos)
         return self
 
     # --- drawing ---------------------------------------------------------
@@ -477,20 +487,21 @@ class Play(Scene):
         app.text(self.title, 38, topleft=(PAD, 18))
         if r.finished:
             if self.rank == 1:
-                note, color = "Done!  New best time!", GREEN
+                note, color = "Done!  New best!", GREEN
             elif self.rank:
                 note, color = f"Done!  #{self.rank} on your list", TEXT
             else:
                 note, color = f"Done!  ({fmt_best(self.score_key)})", MUTED
             app.text(note, 30, color, topleft=(PAD, 54))
-            app.text(f"{self.elapsed:.2f} s", 56, GREEN, topright=(WIDTH - PAD, 14))
-            app.text(f"Undos {r.undos}", 30, MUTED, topright=(WIDTH - PAD, 60))
+            app.text(f"{scores.percent(r.minimum, r.moves)}%", 56, GREEN, topright=(WIDTH - PAD, 14))
+            app.text(f"{r.moves}/{r.minimum} moves    {self.elapsed:.1f} s", 30, MUTED,
+                     topright=(WIDTH - PAD, 60))
             footer = "Enter: next     R: retry     Esc: back"
         else:
             app.text(MODE_DESCRIPTIONS[self.layout.mode], 30, MUTED, topleft=(PAD, 54))
             elapsed = time.perf_counter() - self.started
-            app.text(f"{elapsed:6.1f} s", 56, topright=(WIDTH - PAD, 14))
-            app.text(f"Copy {r.copy_index + 1}/{n}    Undos {r.undos}", 30, MUTED,
+            app.text(f"{r.moves}/{r.minimum}", 56, topright=(WIDTH - PAD, 14))
+            app.text(f"Copy {r.copy_index + 1}/{n}    {elapsed:.0f} s", 30, MUTED,
                      topright=(WIDTH - PAD, 60))
             footer = "Numpad 1-9 or Q W E / A D / Z X C: draw     5 or S: undo     Esc: back"
         app.text(footer, 24, MUTED, midbottom=(WIDTH // 2, HEIGHT - 14))
