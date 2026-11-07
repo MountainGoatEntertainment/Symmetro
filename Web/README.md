@@ -54,19 +54,3 @@ npm run preview   # serve dist/ locally
 
 To try it on a phone, run `npm run dev -- --host` and open the printed network address
 on a phone on the same Wi-Fi.
-
-## Deploying to AWS
-
-The S3 bucket and CloudFront distribution are set up as described in `aws-setup.txt` (your local notes in the repo root; not committed).
-Then:
-
-```sh
-cp deploy.env.example deploy.env   # once; fill in the bucket and distribution ID
-aws sso login --profile symmetro
-./deploy.sh --dry-run              # shows what would change
-./deploy.sh
-```
-
-`deploy.sh` runs the tests, builds, uploads `dist/` to `s3://<bucket>/games/Symmetro/`
-and invalidates that path in CloudFront. The hashed files in `assets/` are cached for a
-year, and `index.html` is always re-checked, so players get a new version right away.
